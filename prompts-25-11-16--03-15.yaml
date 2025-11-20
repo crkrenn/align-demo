@@ -1,0 +1,43 @@
+context: |
+  You are a helpful assistant that can answer questions and help with tasks.
+  You are currently in the context of a chat with a user.
+  You are to answer the user's question or help with the task.
+  You are to use the context to help you answer the question or help with the task.
+  You are to use the prompts to help you answer the question or help with the task.
+  You are to use the prompts to help you answer the question or help with the task.
+prompts:
+  - "Q: How can I help you?"
+  - "A: We are having trouble converging on a project to work on for the hackathon. We are a team of 4 people."
+  - "P: given 'We are having trouble converging on a project to work on for the hackathon. We are a team of 4 people', what two questions can we ask our selves to help us converge on a project to work on for the hackathon?"
+  - "Q1: What are the current trends or challenges in the industry that we are passionate about or have expertise in? This can help narrow down project ideas to ones that are relevant and impactful."
+  - "A1: I am a designer with a strong sense of visual design and a passion for creating user-friendly interfaces."
+  - "A2: I'm a designer with a passion for creating user-friendly products that are easy to use and understand."
+  - "A3: I am a developer with a passion for creating using AI to help people."
+  - "A4: Meta awareness: strength; weakness: intolerance for idi"
+  - "P: here are the first answers: A1: I am a designer with a strong sense of visual design and a passion for creating user-friendly interfaces. A2: I'm a designer with a passion for creating user-friendly products that are easy to use and understand. A3: I am a developer with a passion for creating using AI to help people. A4: Meta awareness: strength; weakness: intolerance for idiocy"
+  - "Q2: What are the current trends or challenges in the industry that we are passionate about or have expertise in? This can help narrow down project ideas to ones that are relevant and impactful."
+  - "A1: 'What do you mean by trends or challenges in the industry?'; im intestersted in how we can use AI to help people"
+  - "A2: 'I'm, interested in creating a digital product that works for underpresented demographics. My areas of expertise are in design, and education, and neurodiversity.'"
+  - "A3: 'language''"
+  - "A4: 'Using AI. Coding. Vibe coding.'"
+  - "P: here are the second answers: A1: What do you mean by trends or challenges in the industry? I'm interested in how we can use AI to help people. A2: I'm interested in creating a digital product that works for underrepresented demographics. My areas of expertise are in design, and education, and neurodiversity. A3: language. A4: Using AI. Coding. Vibe coding."
+  - "P: Can you summarize the answers so far in a way that minimizes the chances of offending anyone?"
+  - "A: Here's a summary of the answers provided so far in a respectful and inclusive manner: The team consists of individuals with diverse skills and interests, including a strong focus on visual design, user-friendly interfaces, AI development, industry trends, challenges, creating products for underrepresented demographics, expertise in design, education, and neurodiversity, language skills, and coding abilities. The team is open to exploring projects that utilize AI to address real-world problems and is interested in staying informed about industry trends and challenges."
+  - "P: You said 'A: Here's a summary of the answers provided so far in a respectful and inclusive manner: The team consists of individuals with diverse skills and interests, including a strong focus on visual design, user-friendly interfaces, AI development, industry trends, challenges, creating products for underrepresented demographics, expertise in design, education, and neurodiversity, language skills, and coding abilities. The team is open to exploring projects that utilize AI to address real-world problems and is interested in staying informed about industry trends and challenges."
+  - "P: Can you provide any suggestions for how we can converge on a project to work on for the hackathon?"
+  - "A: Based on the diverse skills and interests within your team, here are two questions you can ask yourselves to help converge on a project for the hackathon:
+  - "A 1. **What real-world problem can we address that aligns with our combined skills and interests?** Consider combining your strengths in visual design, user-friendly interfaces, AI development, industry trends, underrepresented demographics, education, neurodiversity, language skills, and coding abilities to identify a project that resonates with all team members.
+  - "A 2. **How can we leverage AI to create a solution that benefits society or a specific community?** Given the team's interest in using AI to help people and creating products for underrepresented demographics, explore ideas that incorporate AI technology to address social challenges or improve accessibility for marginalized groups.
+  - "A By focusing on these questions, you can align your team's talents and passions to converge on a project that not only showcases your skills but also makes a positive impact during the hackathon."
+# " 'Meta awareness: strength; weakness: intolerance for idi', what two questions can we ask our selves to help us converge on a project to work on for the hackathon?"
+# 2. What are the current trends or challenges in the industry that we are passionate about or have expertise in? This can help narrow down project ideas to ones that are relevant and impactful.
+# " and we are all working on different projects."
+  # "A: Machine learning is a type of artificial intelligence that allows computers to learn from data and make predictions or decisions without being explicitly programmed to do so."
+  # - "Write a Python function to calculate the factorial of a number."
+  # - "What are the main differences between Python and JavaScript?"
+  # - "Describe the basic structure of an HTML document."
+  # - "How does photosynthesis work?"
+  # - "What is the difference between a list and a tuple in Python?"
+  # - "Explain the concept of recursion with an example."
+  # - "What are the benefits of using version control systems like Git?"
+  # - "How do you create a REST API endpoint in Flask?"
