@@ -9,17 +9,22 @@ import re
 
 
 def extract_qa_messages(file_path: str = "prompts.yaml"):
-    """Extract Q&A messages from YAML file and return as structured data."""
+    """Extract Q&A messages and user initials from YAML file."""
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            data = yaml.safe_load(file)
+            data = yaml.safe_load(file) or {}
             prompts = data.get('prompts', [])
+            users = data.get('users', {})
     except FileNotFoundError:
         print(f"Error: {file_path} not found.")
-        return []
+        return [], {}
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
-        return []
+        return [], {}
+
+    normalized_users = {
+        str(key): str(value) for key, value in (users or {}).items()
+    }
 
     messages = []
     for prompt in prompts:
@@ -36,10 +41,10 @@ def extract_qa_messages(file_path: str = "prompts.yaml"):
                 msg_text = match.group(2)
                 messages.append({"type": msg_type, "text": msg_text})
 
-    return messages
+    return messages, normalized_users
 
 
-def generate_html(messages):
+def generate_html(messages, user_initials):
     """Generate complete HTML with embedded messages."""
     html_template = '''<!DOCTYPE html>
 <html lang="en">
@@ -70,6 +75,7 @@ def generate_html(messages):
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            position: relative;
         }
 
         .chat-header {
@@ -95,6 +101,33 @@ def generate_html(messages):
             text-decoration: none;
             margin-right: 16px;
             cursor: pointer;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .demo-button {
+            background-color: #9966cc;
+            color: white;
+            border: none;
+            border-radius: 18px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .demo-button:hover:not(:disabled) {
+            opacity: 0.85;
+        }
+
+        .demo-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .kebab-menu {
@@ -346,6 +379,21 @@ def generate_html(messages):
             text-align: center;
             border-top: 1px solid #e0e0e0;
         }
+
+        .demo-timer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -354,7 +402,10 @@ def generate_html(messages):
             <div class="header-nav">
                 <span class="back-button">‹</span>
             </div>
-            <div class="kebab-menu">⋯</div>
+            <div class="header-actions">
+                <button class="demo-button" id="demoButton" type="button">Play Demo</button>
+                <div class="kebab-menu">⋯</div>
+            </div>
         </div>
         <div class="chat-messages" id="chatMessages">
         </div>
@@ -370,33 +421,38 @@ def generate_html(messages):
             Please share openly. Your responses are private and help identify alignment gaps. Respectful summaries will be shared with everyone.
         </div>
     </div>
+    <div class="demo-timer" id="demoTimer" aria-live="polite"></div>
 
     <script>
         const messages = {messages_json};
+        const userInitials = {user_initials_json};
 
-        function displayMessages(messages) {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '';
+        const chatMessagesEl = document.getElementById('chatMessages');
+        const demoButton = document.getElementById('demoButton');
+        const demoTimerEl = document.getElementById('demoTimer');
+        let demoRunning = false;
+        const SPEED_FACTOR = 0.2;
 
-            messages.forEach((message, index) => {
-                const messageElement = createMessageElement(message, index);
-                chatMessages.appendChild(messageElement);
+        function displayMessages(list) {
+            chatMessagesEl.innerHTML = '';
+
+            list.forEach((message) => {
+                const { messageDiv, bubbleDiv } = buildMessageElement(message);
+                bubbleDiv.textContent = message.text;
+                chatMessagesEl.appendChild(messageDiv);
             });
 
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
         }
 
-        function createMessageElement(message, index) {
+        function buildMessageElement(message) {
             const messageDiv = document.createElement('div');
             const isQuestion = message.type.toLowerCase().startsWith('q');
             messageDiv.className = `message ${isQuestion ? 'question' : 'answer'}`;
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = message.text;
 
-            // Add logo for questions (Q, Q1, Q2, etc.)
             if (isQuestion) {
                 const logoImg = document.createElement('img');
                 logoImg.src = 'logo.png';
@@ -407,29 +463,147 @@ def generate_html(messages):
 
             messageDiv.appendChild(bubbleDiv);
 
-            // Add avatar for answers (A, A1, A2, etc.)
             if (message.type.toLowerCase().startsWith('a')) {
                 const avatarDiv = document.createElement('div');
                 avatarDiv.className = 'answer-avatar';
-                avatarDiv.textContent = 'BG';
+                avatarDiv.textContent = getInitialsForAnswer(message.type);
                 messageDiv.appendChild(avatarDiv);
             }
 
-            return messageDiv;
+            return { messageDiv, bubbleDiv };
         }
 
-        // Load and display messages when page loads
-        document.addEventListener('DOMContentLoaded', () => displayMessages(messages));
+        function getInitialsForAnswer(messageType) {
+            const match = messageType.match(/^a(\\d+)/i);
+            if (!match) return userInitials.default || 'BG';
+
+            return userInitials[match[1]] || userInitials.default || 'BG';
+        }
+
+        async function startDemo() {
+            if (demoRunning) return;
+            demoRunning = true;
+            hideDemoTimer();
+            if (demoButton) {
+                demoButton.disabled = true;
+                demoButton.textContent = 'Playing…';
+            }
+
+            const startTime = performance.now();
+            await playDemo(messages);
+            const elapsedMs = performance.now() - startTime;
+
+            demoRunning = false;
+            if (demoButton) {
+                demoButton.disabled = false;
+                demoButton.textContent = 'Replay Demo';
+            }
+            showDemoTimer(elapsedMs);
+        }
+
+        async function playDemo(list) {
+            chatMessagesEl.innerHTML = '';
+
+            for (const message of list) {
+                const { messageDiv, bubbleDiv } = buildMessageElement(message);
+                bubbleDiv.textContent = '';
+                chatMessagesEl.appendChild(messageDiv);
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+                await typeText(bubbleDiv, message.text, message.type.toLowerCase().startsWith('q') ? 'question' : 'answer');
+                await pauseBetweenMessages(message);
+            }
+        }
+
+        function typeText(node, text, role) {
+            return new Promise((resolve) => {
+                let index = 0;
+
+                function typeNextChar() {
+                    if (index >= text.length) {
+                        resolve();
+                        return;
+                    }
+
+                    const currentChar = text[index];
+                    node.textContent += currentChar;
+                    index += 1;
+
+                    const delay = role === 'question' ? smoothDelay() : irregularDelay(currentChar);
+                    setTimeout(typeNextChar, delay);
+                }
+
+                typeNextChar();
+            });
+        }
+
+        function smoothDelay() {
+            const base = 28 + Math.random() * 12;
+            return base * SPEED_FACTOR;
+        }
+
+        function irregularDelay(char) {
+            if (/[.!?]/.test(char)) {
+                return (320 + Math.random() * 200) * SPEED_FACTOR;
+            }
+            if (char === ',') {
+                return (180 + Math.random() * 120) * SPEED_FACTOR;
+            }
+            if (char.trim() === '') {
+                return (90 + Math.random() * 90) * SPEED_FACTOR;
+            }
+            return (45 + Math.random() * 80) * SPEED_FACTOR;
+        }
+
+        function pauseBetweenMessages(message) {
+            const isQuestion = message.type.toLowerCase().startsWith('q');
+            const pause = (isQuestion ? 300 : 500) * SPEED_FACTOR;
+            return new Promise((resolve) => setTimeout(resolve, pause));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayMessages(messages);
+
+            if (demoButton) {
+                demoButton.addEventListener('click', startDemo);
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('demo') === '1') {
+                startDemo();
+            }
+        });
+
+        function showDemoTimer(durationMs) {
+            if (!demoTimerEl) return;
+            demoTimerEl.textContent = `Total elapsed: ${formatDuration(durationMs)}`;
+            demoTimerEl.style.display = 'block';
+        }
+
+        function hideDemoTimer() {
+            if (!demoTimerEl) return;
+            demoTimerEl.style.display = 'none';
+        }
+
+        function formatDuration(durationMs) {
+            const totalSeconds = Math.round(durationMs / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
     </script>
 </body>
 </html>'''
 
-    return html_template.replace('{messages_json}', json.dumps(messages, indent=2))
+    return (
+        html_template
+        .replace('{messages_json}', json.dumps(messages, indent=2))
+        .replace('{user_initials_json}', json.dumps(user_initials, indent=2))
+    )
 
 
 def main():
     """Main function to generate HTML from YAML."""
-    messages = extract_qa_messages()
+    messages, user_initials = extract_qa_messages()
 
     if not messages:
         print("No Q&A messages found.")
@@ -443,7 +617,7 @@ def main():
     print("=" * 50)
 
     # Generate and save HTML
-    html_content = generate_html(messages)
+    html_content = generate_html(messages, user_initials)
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
 

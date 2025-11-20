@@ -5,9 +5,14 @@ context: |
   You are to use the context to help you answer the question or help with the task.
   You are to use the prompts to help you answer the question or help with the task.
   You are to use the prompts to help you answer the question or help with the task.
+users:
+  1: AB
+  2: CD
+  3: EF
+  4: GH
 prompts:
   - "Q: How can I help you?"
-  - "A: We are having trouble converging on a project to work on for the hackathon. We are a team of 4 people."
+  - "A1: We are having trouble converging on a project to work on for the hackathon. We are a team of 4 people."
   - "P: given 'We are having trouble converging on a project to work on for the hackathon. We are a team of 4 people', what two questions can we ask our selves to help us converge on a project to work on for the hackathon?"
   - "Q1: Let me ask you each two questions to help us converge on a project to work on for the hackathon."
   - "Q1: What are the current trends or challenges in the industry that we are passionate about or have expertise in? This can help narrow down project ideas to ones that are relevant and impactful."
